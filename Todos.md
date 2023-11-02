@@ -2,15 +2,15 @@
 
 ## Assignment TODOs
 
-- [ ] Step 1
-- [ ] Step 2
-  - [ ] Substep 1
-- [ ] Step 3
-- [ ] Step 4
-  - [ ] Substep 1
-  - [ ] Substep 2
-- [ ] Step 5
-- [ ] Step 6
+- [x] Step 1
+- [x] Step 2
+  - [x] Substep 1
+- [x] Step 3
+- [x] Step 4
+  - [x] Substep 1
+  - [x] Substep 2
+- [x] Step 5
+- [x] Step 6
 - [ ] Step 7
   - [ ] Step 1
   - [ ] Step 2
@@ -20,5 +20,5 @@
 
 - [x] Add planning notes to `Planning.md`
 - [ ] Configure Jest for running unit and integration tests
-- [ ] Write core game engine
-- [ ] Write GUI and DOM code for displaying the game state
+- [x] Write core game engine
+- [x] Write GUI and DOM code for displaying the game state

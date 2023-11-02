@@ -104,6 +104,7 @@
     - TODO
   - methods
     - public `renderBoard()`
+    - public `handleCellButtonClick()`
     - public `renderStatus()`
     - public `renderGameForm()`
     - public `toggleGameForm()`

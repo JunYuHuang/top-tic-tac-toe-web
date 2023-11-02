@@ -9,8 +9,76 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
-    <main class="">
-      <div>TODO</div>
+    <main class="flex flex-col items-center justify-center min-h-screen">
+      <h1 class="text-3xl font-bold uppercase mb-4">Tic Tac Toe</h1>
+      <p class="" id="status">😏</p>
+      <div class="mb-4 mt-4" id="board-root"></div>
+      <button
+        class="border-black border-2 rounded-lg p-2"
+        id="new-game-button"
+        type="button"
+      >
+        New Game
+      </button>
+      <dialog class="p-8 rounded-lg" id="new-game-dialog">
+        <form action="/" method="dialog" class="" id="new-game-form">
+          <h2 class="text-lg font-bold">New Game Settings</h2>
+          <br />
+          <div class="">
+            <label for="x-player-name" class="">X Player Name:</label>
+            <br />
+            <input
+              type="text"
+              name="x-player-name"
+              id="x-player-name"
+              class="border-black border-2 rounded-lg p-2"
+              value="Player 1"
+              required
+            />
+          </div>
+          <br />
+          <div class="">
+            <label for="o-player-name" class="">O Player Name:</label>
+            <br />
+            <input
+              type="text"
+              name="o-player-name"
+              id="o-player-name"
+              class="border-black border-2 rounded-lg p-2"
+              value="Player 2"
+              required
+            />
+          </div>
+          <br />
+          <div class="">
+            <label for="start-piece" class="">Starting Piece:</label>
+            <br />
+            <select
+              name="start-piece"
+              id="start-piece"
+              class="border-black border-2 rounded-lg p-2"
+            >
+              <option selected value="X" class="">X</option>
+              <option value="O" class="">O</option>
+            </select>
+          </div>
+          <br />
+          <button
+            type="button"
+            class="border-black border-2 rounded-lg p-2"
+            id="cancel-button"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="border-black border-2 rounded-lg p-2"
+            id="start-game-button"
+          >
+            Start Game
+          </button>
+        </form>
+      </dialog>
     </main>
   </body>
 </html>
