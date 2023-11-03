@@ -298,6 +298,11 @@ const displayController = (function () {
   let gameBoard;
   let game;
   let createPlayer;
+  const pieceToChar = {
+    X: "×",
+    O: "○",
+    ".": "",
+  };
 
   const setDependencies = function (options) {
     statusElement = options["statusElement"];
@@ -350,12 +355,16 @@ const displayController = (function () {
     }
   };
 
+  const getChar = function (piece) {
+    return pieceToChar[piece];
+  };
+
   const cellComponent = function (args) {
     const { row, col, piece } = args;
 
     return `
-      <button class="board-cell" data-row="${row}" data-col="${col}">
-        ${piece}
+      <button class="board-cell bg-white w-20 h-20 text-6xl" data-row="${row}" data-col="${col}">
+        ${getChar(piece)}
       </button>
     `;
   };
@@ -367,18 +376,12 @@ const displayController = (function () {
     const rows = board.length;
     const cols = board[0].length;
     for (let r = 0; r < rows; r++) {
-      const rowDiv = document.createElement("div");
       for (let c = 0; c < cols; c++) {
-        rowDiv.insertAdjacentHTML(
+        boardRootElement.insertAdjacentHTML(
           "beforeend",
-          cellComponent({
-            row: r,
-            col: c,
-            piece: board[r][c],
-          })
+          cellComponent({ row: r, col: c, piece: board[r][c] })
         );
       }
-      boardRootElement.appendChild(rowDiv);
     }
   };
 
