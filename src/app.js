@@ -144,8 +144,9 @@ const gameBoard = (function () {
 
 // `Player` factory
 function createPlayer(options = {}) {
-  let name = options.hasOwnProperty("name") ? options["name"] : "Player";
-  let piece = options.hasOwnProperty("piece") ? options["piece"] : "X";
+  let name = options["name"] ? options["name"] : "Player";
+  let piece = options["piece"] ? options["piece"] : "X";
+  let type = options["type"] ? options["type"] : "human";
 
   const getName = function () {
     return name;
@@ -163,11 +164,34 @@ function createPlayer(options = {}) {
     piece = newPiece;
   };
 
+  const getType = () => type;
+
+  const setType = function (newType) {
+    type = newType;
+  };
+
+  const getRandomMove = function (board) {
+    const emptyCells = [];
+    const rows = board.length;
+    const cols = board[0].length;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (board[r][c] === ".") emptyCells.push([r, c]);
+      }
+    }
+    if (emptyCells.length === 0) throw new Error("No available moves!");
+    const randomPos = Math.floor(Math.random() * emptyCells.length);
+    return emptyCells[randomPos];
+  };
+
   return {
     getName,
     setName,
     getPiece,
     setPiece,
+    getType,
+    setType,
+    getRandomMove,
   };
 }
 
@@ -182,6 +206,13 @@ const game = (function () {
   const getPlayerByPiece = function (piece) {
     if (players.length === 0) return;
     const res = players.filter((player) => player.getPiece() === piece);
+    return res[0];
+  };
+
+  const getComputerPlayer = function () {
+    if (players.length === 0) return;
+    const res = players.filter((player) => player.getType() === "computer");
+    if (res.size === 0) return;
     return res[0];
   };
 
@@ -214,6 +245,7 @@ const game = (function () {
         createPlayer({
           name: options["xPlayer"].name,
           piece: options["xPlayer"].piece,
+          type: options["xPlayer"].type ? options["xPlayer"].type : "human",
         })
       );
     }
@@ -225,6 +257,7 @@ const game = (function () {
         createPlayer({
           name: options["oPlayer"].name,
           piece: options["oPlayer"].piece,
+          type: options["oPlayer"].type ? options["oPlayer"].type : "human",
         })
       );
     }
@@ -241,6 +274,7 @@ const game = (function () {
   return {
     getPlayers,
     getPlayerByPiece,
+    getComputerPlayer,
     setPlayers,
     getTurnPiece,
     setTurnPiece,
@@ -393,6 +427,31 @@ const displayController = (function () {
     renderStatus(statusMsg);
     renderBoard(gameBoard.getBoard());
     logState();
+
+    // computer player moves if it's its turn
+    const computerPlayer = game.getComputerPlayer();
+    if (computerPlayer && game.getTurnPiece() === computerPlayer.getPiece()) {
+      const botMove = computerPlayer.getRandomMove(gameBoard.getBoard());
+      gameBoard.placeAt(computerPlayer.getPiece(), botMove);
+      const isWin = gameBoard.didPieceWin(computerPlayer.getPiece());
+      const isTie = gameBoard.didTie();
+      let statusMsg = "";
+      if (isWin || isTie) {
+        const winner = game.getPlayerByPiece(computerPlayer.getPiece());
+        statusMsg = isWin
+          ? `Game ended: ${winner.getPiece()} (${winner.getName()}) won!`
+          : "Game ended: Tie!";
+        game.setIsPlaying(false);
+      } else {
+        game.switchTurns();
+      }
+      renderStatus(statusMsg);
+      renderBoard(gameBoard.getBoard());
+      console.log(
+        `Computer Player placed its piece ${computerPlayer.getPiece()} at position ${botMove}`
+      );
+      logState();
+    }
   };
 
   const handleGameForm = function (e) {
@@ -405,18 +464,38 @@ const displayController = (function () {
     // update game state
     const formData = new FormData(newGameForm);
     game.update({
-      xPlayer: { name: formData.get("x-player-name"), piece: "X" },
-      oPlayer: { name: formData.get("o-player-name"), piece: "O" },
+      xPlayer: {
+        name: formData.get("x-player-name"),
+        piece: "X",
+        type: formData.get("computer-enemy") === "X" ? "computer" : "human",
+      },
+      oPlayer: {
+        name: formData.get("o-player-name"),
+        piece: "O",
+        type: formData.get("computer-enemy") === "O" ? "computer" : "human",
+      },
       startPiece: formData.get("start-piece"),
       isPlaying: true,
     });
     renderStatus();
     renderBoard(gameBoard.getBoard());
     newGameDialog.close();
-    e.preventDefault();
-
     console.log("Started new game!");
     logState();
+
+    // computer player moves if it's its turn
+    const computerPlayer = game.getComputerPlayer();
+    if (computerPlayer && game.getTurnPiece() === computerPlayer.getPiece()) {
+      const botMove = computerPlayer.getRandomMove(gameBoard.getBoard());
+      gameBoard.placeAt(computerPlayer.getPiece(), botMove);
+      game.switchTurns();
+      renderStatus();
+      renderBoard(gameBoard.getBoard());
+      console.log(
+        `Computer Player placed its piece ${computerPlayer.getPiece()} at position ${botMove}`
+      );
+      logState();
+    }
   };
 
   const handleNewGameButton = function (e) {
@@ -438,11 +517,16 @@ const displayController = (function () {
     });
   };
 
+  const openDialog = function () {
+    newGameDialog.showModal();
+  };
+
   return {
     setDependencies,
     addEventListeners,
     renderBoard,
     renderStatus,
+    openDialog,
   };
 })();
 
@@ -461,15 +545,16 @@ window.addEventListener("load", function () {
   });
   displayController.addEventListeners();
 
-  // // for testing
+  // for testing
   // game.update({
-  //   xPlayer: { name: "TestPlayer 1", piece: "X" },
-  //   oPlayer: { name: "TestPlayer 2", piece: "O" },
-  //   startPiece: "X",
+  //   xPlayer: { name: "Tester 1", piece: "X" },
+  //   oPlayer: { name: "BotTester", piece: "O", type: "computer" },
+  //   startPiece: "O",
   //   isPlaying: true,
   // });
-  // // end of testing
+  // end of testing
 
   displayController.renderStatus();
   displayController.renderBoard(gameBoard.getBoard());
+  displayController.openDialog();
 });

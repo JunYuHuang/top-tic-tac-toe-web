@@ -12,7 +12,7 @@
 - [x] Step 5
 - [x] Step 6
 - [ ] Step 7
-  - [ ] Step 1
+  - [x] Step 1
   - [ ] Step 2
   - [ ] Step 3
 
