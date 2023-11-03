@@ -1,12 +1,10 @@
 # Tic-Tac-Toe Web Game
 
-<!-- ![Gameplay demo of one player winning the game Tic-Tac-Toe](/assets/chess-demo.gif) -->
-
-TODO
+Game is live and playable [here](https://junyuhuang.github.io/top-tic-tac-toe-web).
 
 Project progress is tracked in the [Todos document](/Todos.md).
 
-## Quick Start
+<!-- ## Quick Start
 
 TODO
 
@@ -17,4 +15,4 @@ npm install
 
 ## Skills Demonstrated
 
-- TODO
+- TODO -->
