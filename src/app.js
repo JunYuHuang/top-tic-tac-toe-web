@@ -143,34 +143,42 @@ const gameBoard = (function () {
 })();
 
 // `Player` factory
-function createPlayer(options = {}) {
-  let name = options["name"] ? options["name"] : "Player";
-  let piece = options["piece"] ? options["piece"] : "X";
-  let type = options["type"] ? options["type"] : "human";
+class Player {
+  #name;
+  #piece;
+  #type;
 
-  const getName = function () {
-    return name;
-  };
+  constructor(options = {}) {
+    this.#name = options["name"] ? options["name"] : "Player";
+    this.#piece = options["piece"] ? options["piece"] : "X";
+    this.#type = options["type"] ? options["type"] : "human";
+  }
 
-  const setName = function (newName) {
-    name = newName;
-  };
+  get name() {
+    return this.#name;
+  }
 
-  const getPiece = function () {
-    return piece;
-  };
+  set name(newName) {
+    this.#name = newName;
+  }
 
-  const setPiece = function (newPiece) {
-    piece = newPiece;
-  };
+  get piece() {
+    return this.#piece;
+  }
 
-  const getType = () => type;
+  set piece(newPiece) {
+    this.#piece = newPiece;
+  }
 
-  const setType = function (newType) {
-    type = newType;
-  };
+  get type() {
+    return this.#type;
+  }
 
-  const getRandomMove = function (board) {
+  set type(newType) {
+    this.#type = newType;
+  }
+
+  getRandomMove(board) {
     const emptyCells = [];
     const rows = board.length;
     const cols = board[0].length;
@@ -182,17 +190,7 @@ function createPlayer(options = {}) {
     if (emptyCells.length === 0) throw new Error("No available moves!");
     const randomPos = Math.floor(Math.random() * emptyCells.length);
     return emptyCells[randomPos];
-  };
-
-  return {
-    getName,
-    setName,
-    getPiece,
-    setPiece,
-    getType,
-    setType,
-    getRandomMove,
-  };
+  }
 }
 
 // `Game` module
@@ -205,13 +203,13 @@ const game = (function () {
 
   const getPlayerByPiece = function (piece) {
     if (players.length === 0) return;
-    const res = players.filter((player) => player.getPiece() === piece);
+    const res = players.filter((player) => player.piece === piece);
     return res[0];
   };
 
   const getComputerPlayer = function () {
     if (players.length === 0) return;
-    const res = players.filter((player) => player.getType() === "computer");
+    const res = players.filter((player) => player.type === "computer");
     if (res.size === 0) return;
     return res[0];
   };
@@ -237,29 +235,18 @@ const game = (function () {
   };
 
   const update = function (options = {}) {
-    if (options["xPlayer"]) {
-      if (players.length > 0) {
-        players = players.filter((player) => player.getPiece() !== "X");
+    if (options["players"]) {
+      const newPlayers = [];
+      for (let player of options["players"]) {
+        newPlayers.push(
+          new Player({
+            name: player.name,
+            piece: player.piece,
+            type: player.type ? player.type : "human",
+          })
+        );
       }
-      players.push(
-        createPlayer({
-          name: options["xPlayer"].name,
-          piece: options["xPlayer"].piece,
-          type: options["xPlayer"].type ? options["xPlayer"].type : "human",
-        })
-      );
-    }
-    if (options["oPlayer"]) {
-      if (players.length > 0) {
-        players = players.filter((player) => player.getPiece() !== "O");
-      }
-      players.push(
-        createPlayer({
-          name: options["oPlayer"].name,
-          piece: options["oPlayer"].piece,
-          type: options["oPlayer"].type ? options["oPlayer"].type : "human",
-        })
-      );
+      setPlayers(newPlayers);
     }
     if (options["startPiece"]) setTurnPiece(options["startPiece"]);
     if (options["isPlaying"]) setIsPlaying(options["isPlaying"]);
@@ -297,7 +284,6 @@ const displayController = (function () {
   let cancelButton;
   let gameBoard;
   let game;
-  let createPlayer;
   const pieceToChar = {
     X: "×",
     O: "○",
@@ -314,7 +300,6 @@ const displayController = (function () {
     cancelButton = options["cancelButton"];
     gameBoard = options["gameBoard"];
     game = options["game"];
-    createPlayer = options["createPlayer"];
   };
 
   const isMissingDependencies = function () {
@@ -327,8 +312,7 @@ const displayController = (function () {
       !startGameButton ||
       !cancelButton ||
       !gameBoard ||
-      !game ||
-      !createPlayer
+      !game
     ) {
       console.log("missing dependencies");
       return true;
@@ -393,7 +377,7 @@ const displayController = (function () {
       statusElement.textContent = "Game has not started yet.";
     } else if (game.getIsPlaying()) {
       const player = game.getPlayerByPiece(game.getTurnPiece());
-      statusElement.textContent = `It is ${player.getPiece()} (${player.getName()})'s turn to go.`;
+      statusElement.textContent = `It is ${player.piece} (${player.name})'s turn to go.`;
     }
   };
 
@@ -421,7 +405,7 @@ const displayController = (function () {
     if (isWin || isTie) {
       const winner = game.getPlayerByPiece(piece);
       statusMsg = isWin
-        ? `Game ended: ${winner.getPiece()} (${winner.getName()}) won!`
+        ? `Game ended: ${winner.piece} (${winner.name}) won!`
         : "Game ended: Tie!";
       game.setIsPlaying(false);
     } else {
@@ -433,16 +417,16 @@ const displayController = (function () {
 
     // computer player moves if it's its turn
     const computerPlayer = game.getComputerPlayer();
-    if (computerPlayer && game.getTurnPiece() === computerPlayer.getPiece()) {
+    if (computerPlayer && game.getTurnPiece() === computerPlayer.piece) {
       const botMove = computerPlayer.getRandomMove(gameBoard.getBoard());
-      gameBoard.placeAt(computerPlayer.getPiece(), botMove);
-      const isWin = gameBoard.didPieceWin(computerPlayer.getPiece());
+      gameBoard.placeAt(computerPlayer.piece, botMove);
+      const isWin = gameBoard.didPieceWin(computerPlayer.piece);
       const isTie = gameBoard.didTie();
       let statusMsg = "";
       if (isWin || isTie) {
-        const winner = game.getPlayerByPiece(computerPlayer.getPiece());
+        const winner = game.getPlayerByPiece(computerPlayer.piece);
         statusMsg = isWin
-          ? `Game ended: ${winner.getPiece()} (${winner.getName()}) won!`
+          ? `Game ended: ${winner.piece} (${winner.name}) won!`
           : "Game ended: Tie!";
         game.setIsPlaying(false);
       } else {
@@ -451,7 +435,7 @@ const displayController = (function () {
       renderStatus(statusMsg);
       renderBoard(gameBoard.getBoard());
       console.log(
-        `Computer Player placed its piece ${computerPlayer.getPiece()} at position ${botMove}`
+        `Computer Player placed its piece ${computerPlayer.piece} at position ${botMove}`
       );
       logState();
     }
@@ -467,16 +451,18 @@ const displayController = (function () {
     // update game state
     const formData = new FormData(newGameForm);
     game.update({
-      xPlayer: {
-        name: formData.get("x-player-name"),
-        piece: "X",
-        type: formData.get("computer-enemy") === "X" ? "computer" : "human",
-      },
-      oPlayer: {
-        name: formData.get("o-player-name"),
-        piece: "O",
-        type: formData.get("computer-enemy") === "O" ? "computer" : "human",
-      },
+      players: [
+        {
+          name: formData.get("x-player-name"),
+          piece: "X",
+          type: formData.get("computer-enemy") === "X" ? "computer" : "human",
+        },
+        {
+          name: formData.get("o-player-name"),
+          piece: "O",
+          type: formData.get("computer-enemy") === "O" ? "computer" : "human",
+        },
+      ],
       startPiece: formData.get("start-piece"),
       isPlaying: true,
     });
@@ -488,14 +474,14 @@ const displayController = (function () {
 
     // computer player moves if it's its turn
     const computerPlayer = game.getComputerPlayer();
-    if (computerPlayer && game.getTurnPiece() === computerPlayer.getPiece()) {
+    if (computerPlayer && game.getTurnPiece() === computerPlayer.piece) {
       const botMove = computerPlayer.getRandomMove(gameBoard.getBoard());
-      gameBoard.placeAt(computerPlayer.getPiece(), botMove);
+      gameBoard.placeAt(computerPlayer.piece, botMove);
       game.switchTurns();
       renderStatus();
       renderBoard(gameBoard.getBoard());
       console.log(
-        `Computer Player placed its piece ${computerPlayer.getPiece()} at position ${botMove}`
+        `Computer Player placed its piece ${computerPlayer.piece} at position ${botMove}`
       );
       logState();
     }
@@ -544,19 +530,8 @@ window.addEventListener("load", function () {
     cancelButton: document.querySelector("#cancel-button"),
     gameBoard: gameBoard,
     game: game,
-    createPlayer: createPlayer,
   });
   displayController.addEventListeners();
-
-  // for testing
-  // game.update({
-  //   xPlayer: { name: "Tester 1", piece: "X" },
-  //   oPlayer: { name: "BotTester", piece: "O", type: "computer" },
-  //   startPiece: "O",
-  //   isPlaying: true,
-  // });
-  // end of testing
-
   displayController.renderStatus();
   displayController.renderBoard(gameBoard.getBoard());
   displayController.openDialog();
